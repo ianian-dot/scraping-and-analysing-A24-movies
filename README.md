@@ -1,4 +1,4 @@
-See (jupyter notebook here)[https://nbviewer.org/github/ianian-dot/scraping-and-analysing-A24-movies/blob/main/a24_rt_analysis.ipynb]
+See [jupyter notebook here](https://nbviewer.org/github/ianian-dot/scraping-and-analysing-A24-movies/blob/main/a24_rt_analysis.ipynb)
 
 # Scraping A24 Rotten Tomatoes information and analysing 
 
