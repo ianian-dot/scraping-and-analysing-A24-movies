@@ -1,3 +1,5 @@
+See (jupyter notebook here)[https://nbviewer.org/github/ianian-dot/scraping-and-analysing-A24-movies/blob/main/a24_rt_analysis.ipynb]
+
 # Scraping A24 Rotten Tomatoes information and analysing 
 
 As part of a personal interest in both movies and specfically A24 movies, alongside an admiration of the Rotten Tomatoes rating system 
