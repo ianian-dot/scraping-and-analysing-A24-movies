@@ -142,60 +142,84 @@ def other_info_improved(soup):
 
     return audience_score, genre, duration, rating, box_office, prod_co
 
+def other_info_updated(soup):
+    '''
+    UPDATED METHOD FOR THE NEW WEBSITE FORMATTING 
+    ALSO THE MOST EFFICIENT AND CAPTURES ALL DETAILS FROM THE MOVIE INFO TABLE INSTEAD OF HAVING TO PICK OUT CERTAIN 
+    INFO
+    '''
+    audience_score = None
+    number_audience_reviews = None
+
+    ## 1. Audience scores 
+    audience_score = soup.find('rt-button', {'slot': 'audienceScore'}).get_text(strip=True)
+    number_audience_reviews = soup.find('rt-link', {'slot': 'audienceReviews'}).get_text(strip=True)
+
+    ## === TABLE INFORMATION AT THE BOTTOM
+    all_categories = soup.find_all('div', class_ = 'category-wrap')
+    category_title = [category.find('dt').get_text(strip = True) for category in all_categories]
+    category_value = [category.find('dd').get_text(strip = True) for category in all_categories]
+    details_dict = {title:value for title,value in zip(category_title, category_value)}
+    # Add audience scores and number of aud reviews
+    details_dict['audience_score'] = audience_score
+    details_dict['number_audience_reviews'] = number_audience_reviews
+
+    return details_dict
+
+
+    
 
 
 ## FOR LOOP TO ITERATE THROUGH THE URLS AND COLLECT INFO
-more_info_df = initial_df.copy()
+def loop_and_scrape_more_info(original_df, session, dict_collector):
+    for i, row in original_df.iterrows():
+        print(f"scraping {row['Title']}")
+        url = row['URL']
+        soup = soupgenerator_randomuseragent(url, session= session)
+        info = other_info_updated(soup)
+        print(info)
+        dict_collector.append(info)
+        if i % 10 == 0:
+            time.sleep(2)
+
+    return(dict_collector)
+    
+## Get the info
 session = requests.session()
-for i, row in more_info_df.iterrows():
-    print(f"scraping {row['Title']}")
-    url = row['URL']
-    soup = soupgenerator_randomuseragent(url, session= session)
-    audience_score, genre, duration, rating, box_office, prod_co = other_info(soup)
-    print(audience_score, genre, duration, rating, box_office, prod_co)
-    # Append the extracted info to the DataFrame
-    more_info_df.at[i, 'Audience Score'] = audience_score
-    more_info_df.at[i, 'Genre'] = genre
-    more_info_df.at[i, 'Duration'] = duration
-    more_info_df.at[i, 'Rating'] = rating
-    more_info_df.at[i, 'Box Office'] = box_office
-    more_info_df.at[i, 'Production Co'] = prod_co
+dict_collector = []
+extra_info_list_of_dic = loop_and_scrape_more_info(initial_df, session, dict_collector)
 
-    if i % 10 == 0:
-        time.sleep(2)
-
-## Check and compare before and after 
-print(f"Before: {initial_df.shape}")
-print(f"After: {more_info_df.shape}")
-more_info_df.to_csv('more_info_df.csv')
-
-## Check missing data:
-more_info_df.isna().any(axis = 1).sum()
-
-## Movies with 6 NAs (the most missing ones)
-movies_6_nas = [num_na == 6 for num_na in more_info_df.isna().sum(axis = 1)]
-movies_6_nas_titles = more_info_df[movies_6_nas]['Title']
-# for these movies, which variables are missing?
-more_info_df[movies_6_nas].isna().sum(axis = 0)
-
-## save html as a file to inspect the html code 
-# html_content = soup.prettify() ## make it nicer first
-
-# # Specify the file path where you want to save the HTML file
-# file_path = 'output.html' ## specify output path and file name 
-
-# # Write the HTML content to the file
-# with open(file_path, 'w', encoding='utf-8') as f:
-#     f.write(html_content)
+## Make the df 
+extra_df = pd.DataFrame(extra_info_list_of_dic)
 
 
-## VARIABLE BY VARIABLE 
-missing_variables = more_info_df.isna().sum(axis = 0)>0
-## See examples of titles for each missing variable 
-missing_variables.index
+## Check and clean df 
+print(extra_df.shape)
+print(initial_df.shape)
+
+## Check cols to see if there are duplicates (e.g. slightly different spelling)
+extra_df.columns
+
+## Append to original df 
+full_df = pd.concat([initial_df, extra_df], axis=1) ## combine horizontally 
+
+## Save 
+full_df.to_csv('full_scraped_a24_df.csv')
 
 
-## POPULATING DATA GAPS WITH ROTTEN TOMATOES API 
-from rotten_tomatoes_client import RottenTomatoesClient
 
-RottenTomatoesClient.search('The Farewell')
+########## ============================================================
+########## ============================================================
+########## ============================================================
+## TESTING - DELETE LATER 
+# session = requests.session()
+# url = 'https://www.rottentomatoes.com/m/amy_2015'
+# soup = soupgenerator_randomuseragent(url, session)
+
+# soup.find('rt-button', {'slot': 'audienceScore'}).get_text(strip=True)
+# soup.find('div', class_ = 'content-wrap').find_all('div', class_ = 'category-wrap')
+# all_categories = soup.find_all('div', class_ = 'category-wrap')
+# category_title = [category.find('dt').get_text(strip = True) for category in all_categories]
+# category_value = [category.find('dd').get_text(strip = True) for category in all_categories]
+# details_dict = {title:value for title,value in zip(category_title, category_value)}
+

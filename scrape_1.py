@@ -18,7 +18,8 @@ for more info
 rt_a24_url = 'https://editorial.rottentomatoes.com/guide/all-a24-movies-ranked/'
 
 ## Get requests and soup
-soup = soupgenerator_randomuseragent(rt_a24_url)
+s = requests.session()
+soup = soupgenerator_randomuseragent(rt_a24_url, s)
 ## Look for each movie card -- get list of movie details
 movies = soup.find_all('div', class_='countdown-item-content')
 if movies:
